@@ -9,19 +9,20 @@ export interface QuotationLineItem {
   categoryName: string;
   subCategoryId: string;
   subCategoryName: string;
-  pricingType: PricingType;
+  pricingType?: PricingType;
   ratePerSqFt: number; // Snapshot of rate used at creation time
   area: number; // in sq.ft
   basePrice: number; // Internal Reference: ratePerSqFt * area
   finalPrice: number; // Manually editable quoted price
   notes?: string;
+  description?: string;
 }
 
 export interface QuotationRoom {
   id: string;
   roomId: string;
   roomName: string;
-  roomArea: number; // in sq.ft (default measurement applied to items)
+  roomArea?: number; // optional legacy reference
   items: QuotationLineItem[];
 }
 

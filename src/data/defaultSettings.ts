@@ -16,6 +16,17 @@ export const DEFAULT_SETTINGS: CompanySettings = {
   defaultValidityDays: 15,
   defaultGstPercent: 18,
   enableGstByDefault: false,
+  materialSpecifications: [
+    { description: 'BWP Plywood', spec: 'BWP 710 grade,Calibrated Zero Emission,16 MM Calibrated ply', brand: 'Century Club Prime' },
+    { description: 'MR Plywood', spec: 'MR 303 grade,Calibrated Zero Emission,16MM Calibrated ply', brand: 'Calibrated' },
+    { description: "HDHMR's", spec: 'HDHMR for all shutters', brand: 'Green Pannel' },
+    { description: 'Handles in Kitchen', spec: 'G / Golla Profile for Base and Loft', brand: 'Ebco' },
+    { description: "Handles in Wardrobe's", spec: "12'inch Handles for Wardrobe shutters, Knobs / PTO for Loft", brand: 'Ebco' },
+    { description: 'Kitchen Hardwares', spec: '- Soft Close Hinges\n- Telescopic Channels for Drawers', brand: 'Ebco' },
+    { description: "Wardrobe Hardware's", spec: '- Soft Close Hinges\n- Telescopic Channels for Drawers .', brand: 'Ebco' },
+    { description: 'Wardrobe & Drawer Locks', spec: '-', brand: 'Ebco/ Europha' },
+    { description: 'Inner Laminate', spec: 'Standard white laminate finish', brand: '-' },
+  ],
   termsAndConditions: [
     'Quotation is valid for 15 days from the date of issuance.',
     'Civil modifications, structural changes, plumbing, and major electrical rerouting will be billed per actual site conditions.',
@@ -29,5 +40,6 @@ export const DEFAULT_SETTINGS: CompanySettings = {
     { percentage: 40, stage: 'Production Kickoff & Factory Sourcing' },
     { percentage: 40, stage: 'Dispatch of Modular Units to Site' },
     { percentage: 10, stage: 'Final Handover & Deep Clean Inspection' }
-  ]
+  ],
+  sections: []
 };

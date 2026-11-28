@@ -17,12 +17,14 @@ interface SidebarProps {
   onSelectTab: (tab: NavTab) => void;
   quotationCount?: number;
   draftCount?: number;
+  tagline?: string;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   currentTab,
   onSelectTab,
   draftCount = 0,
+  tagline,
 }) => {
   const navItems = [
     {
@@ -68,9 +70,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside className="no-print w-64 lg:w-72 bg-brand-950 text-slate-200 flex flex-col shrink-0 min-h-screen border-r border-brand-900/60 transition-all select-none">
       {/* Brand Header */}
-      <div className="p-6 border-b border-brand-900/80">
-        <Logo variant="light" size="md" />
-        <div className="mt-3.5 pt-3 border-t border-brand-900/50 flex items-center justify-between text-[11px] text-slate-400">
+      <div className="p-4 border-b border-brand-900/80">
+        <div className="bg-white rounded-2xl p-3 shadow-sm border border-stone-100">
+          <Logo variant="dark" size="sm" tagline={tagline} />
+        </div>
+        <div className="mt-3 pt-2.5 flex items-center justify-between text-[11px] text-slate-400 px-1">
           <span className="flex items-center gap-1.5 font-medium">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             Internal Portal

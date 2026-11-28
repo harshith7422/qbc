@@ -1,3 +1,9 @@
+export interface MaterialSpec {
+  description: string;
+  spec: string;
+  brand: string;
+}
+
 export interface CompanySettings {
   companyName: string;
   tagline: string;
@@ -14,9 +20,11 @@ export interface CompanySettings {
   defaultValidityDays: number;
   defaultGstPercent: number;
   enableGstByDefault: boolean;
+  materialSpecifications: MaterialSpec[];
   termsAndConditions: string[];
   paymentMilestones: {
     percentage: number;
     stage: string;
   }[];
+  sections: { title: string; points: string[] }[];
 }

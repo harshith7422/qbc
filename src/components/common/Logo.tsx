@@ -4,6 +4,7 @@ interface LogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   variant?: 'dark' | 'light' | 'gold';
   showTagline?: boolean;
+  tagline?: string;
   className?: string;
 }
 
@@ -11,13 +12,14 @@ export const Logo: React.FC<LogoProps> = ({
   size = 'md',
   variant = 'dark',
   showTagline = true,
+  tagline,
   className = '',
 }) => {
   const iconSizes = {
-    sm: 'w-7 h-7',
-    md: 'w-9 h-9',
-    lg: 'w-12 h-12',
-    xl: 'w-16 h-16',
+    sm: 'h-8 w-auto',
+    md: 'h-11 w-auto',
+    lg: 'h-16 w-auto',
+    xl: 'h-20 w-auto',
   };
 
   const textSizes = {
@@ -30,57 +32,44 @@ export const Logo: React.FC<LogoProps> = ({
   const isLight = variant === 'light';
 
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
-      {/* Architectural Geometric Monogram Icon */}
+    <div className={`flex items-center gap-3.5 ${className}`}>
+      {/* Brand House & Lamp Logo Icon */}
       <div
-        className={`${iconSizes[size]} relative flex items-center justify-center rounded-lg ${
-          isLight ? 'bg-white/10 text-white border border-white/20' : 'bg-brand-900 text-accent-gold shadow-sm'
+        className={`relative flex items-center justify-center shrink-0 rounded-xl ${
+          isLight ? 'bg-white p-1.5 shadow-sm' : ''
         } transition-transform duration-200`}
       >
-        <svg
-          viewBox="0 0 40 40"
-          className="w-3/5 h-3/5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          {/* Outer drafting frame */}
-          <rect x="4" y="4" width="32" height="32" rx="4" className={isLight ? 'stroke-white/80' : 'stroke-accent-gold'} />
-          {/* Architectural intersecting layout lines */}
-          <path d="M4 16H22V36" className={isLight ? 'stroke-white/90' : 'stroke-accent-goldLight'} />
-          <path d="M22 24H36" className={isLight ? 'stroke-white/70' : 'stroke-amber-300'} />
-          <path d="M12 4V16" className={isLight ? 'stroke-white/60' : 'stroke-accent-gold'} />
-          {/* Compass dot */}
-          <circle cx="22" cy="16" r="1.8" fill="currentColor" />
-        </svg>
+        <img
+          src="/logo.png"
+          alt="Blue Craft Logo"
+          className={`${iconSizes[size]} object-contain`}
+        />
       </div>
 
       <div className="flex flex-col">
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 flex-wrap">
           <span
             className={`font-serif tracking-wider font-bold uppercase ${textSizes[size]} ${
-              isLight ? 'text-white' : 'text-brand-900'
+              isLight ? 'text-white' : 'text-brand-950'
             }`}
           >
             Blue Craft
           </span>
           <span
-            className={`font-sans tracking-widest text-[0.65em] font-medium uppercase px-1 py-0.5 rounded ${
-              isLight ? 'bg-white/15 text-white/90' : 'bg-stone-200/80 text-brand-800'
+            className={`font-sans tracking-wider text-[0.6em] font-bold uppercase px-2 py-0.5 rounded-md ${
+              isLight ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-800'
             }`}
           >
-            Studio
+            Design Studio
           </span>
         </div>
         {showTagline && (
           <span
-            className={`text-[9px] tracking-widest uppercase font-medium ${
+            className={`text-[9px] tracking-widest uppercase font-semibold mt-0.5 ${
               isLight ? 'text-slate-300' : 'text-slate-500'
             }`}
           >
-            Interior Design & Turnkey
+            {tagline || 'Interior Design & Turnkey'}
           </span>
         )}
       </div>

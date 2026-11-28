@@ -114,6 +114,7 @@ export const App: React.FC = () => {
         }}
         quotationCount={quotations.length}
         draftCount={draftCount}
+        tagline={settings.tagline}
       />
 
       {/* Main Content Area */}

@@ -125,7 +125,7 @@ export const MasterPricing: React.FC<MasterPricingProps> = ({
     subCategory: {
       id: string;
       name: string;
-      pricingType: 'fixed' | 'variable';
+      pricingType?: 'fixed' | 'variable';
       rate: number;
       description?: string;
     }
@@ -134,6 +134,11 @@ export const MasterPricing: React.FC<MasterPricingProps> = ({
       (c) => c.name.toLowerCase() === categoryName.toLowerCase()
     );
 
+    const finishToSave = {
+      ...subCategory,
+      pricingType: subCategory.pricingType || 'fixed',
+    };
+
     let updatedCategories: CategoryItem[];
 
     if (existingCat) {
@@ -141,7 +146,7 @@ export const MasterPricing: React.FC<MasterPricingProps> = ({
         if (c.id === existingCat.id) {
           return {
             ...c,
-            subCategories: [...c.subCategories, subCategory],
+            subCategories: [...c.subCategories, finishToSave],
           };
         }
         return c;
@@ -150,7 +155,7 @@ export const MasterPricing: React.FC<MasterPricingProps> = ({
       const newCategory: CategoryItem = {
         id: `cat-${Date.now()}`,
         name: categoryName,
-        subCategories: [subCategory],
+        subCategories: [finishToSave],
       };
       updatedCategories = [...currentRoom.categories, newCategory];
     }

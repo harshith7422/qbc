@@ -11,7 +11,7 @@ interface AddFinishModalProps {
   onAddFinish: (newCategoryName: string, subCategory: {
     id: string;
     name: string;
-    pricingType: PricingType;
+    pricingType?: PricingType;
     rate: number;
     description?: string;
   }) => void;
@@ -32,7 +32,6 @@ export const AddFinishModal: React.FC<AddFinishModalProps> = ({
   );
   const [customCategoryName, setCustomCategoryName] = useState('');
   const [subCategoryName, setSubCategoryName] = useState('');
-  const [pricingType, setPricingType] = useState<PricingType>('fixed');
   const [rate, setRate] = useState<number>(1800);
   const [description, setDescription] = useState('');
 
@@ -54,8 +53,8 @@ export const AddFinishModal: React.FC<AddFinishModalProps> = ({
     onAddFinish(finalCategoryName, {
       id: generateId('sub'),
       name: subCategoryName.trim(),
-      pricingType,
-      rate: pricingType === 'variable' ? 0 : Number(rate) || 0,
+      pricingType: 'fixed',
+      rate: Number(rate) || 0,
       description: description.trim() || undefined,
     });
 
@@ -145,62 +144,42 @@ export const AddFinishModal: React.FC<AddFinishModalProps> = ({
             />
           </div>
 
-          {/* Pricing Type */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
-                Pricing Type
-              </label>
-              <select
-                value={pricingType}
-                onChange={(e) => setPricingType(e.target.value as PricingType)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-stone-border bg-stone-warm/50 text-sm font-medium text-brand-950 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-900/20 focus:border-brand-900"
-              >
-                <option value="fixed">Fixed Rate</option>
-                <option value="variable">Variable (Global Rate)</option>
-              </select>
-            </div>
-
-            {/* Rate Input */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
-                Rate (₹ / sq.ft)
-              </label>
-              {pricingType === 'fixed' ? (
-                <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">
-                    ₹
-                  </span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="50"
-                    value={rate}
-                    onChange={(e) => setRate(Number(e.target.value))}
-                    required
-                    className="w-full pl-8 pr-3 py-2.5 rounded-xl border border-stone-border bg-stone-warm/50 text-sm font-mono font-bold text-brand-950 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-900/20 focus:border-brand-900"
-                  />
-                </div>
-              ) : (
-                <div className="px-3.5 py-2.5 rounded-xl bg-indigo-50 border border-indigo-100 text-xs text-indigo-900 font-medium">
-                  Uses Global: ₹{globalBaseRate.toLocaleString('en-IN')}/sq.ft
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Description / Specification note */}
+          {/* Description (In place of Pricing Type) */}
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
-              Material Specification Note (Optional)
+              Description
             </label>
             <input
               type="text"
               placeholder="e.g. 1mm anti-fingerprint matte with 2mm PVC edgeband"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3.5 py-2 rounded-xl border border-stone-border bg-stone-warm/50 text-xs font-normal text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-900/20 focus:border-brand-900"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-stone-border bg-stone-warm/50 text-sm font-normal text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-900/20 focus:border-brand-900"
             />
+            <span className="text-[10px] text-slate-400 mt-1 block">
+              Optional material specification note displayed on quotations.
+            </span>
+          </div>
+
+          {/* Rate Input */}
+          <div>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
+              Rate (₹ / sq.ft)
+            </label>
+            <div className="relative">
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">
+                ₹
+              </span>
+              <input
+                type="number"
+                min="0"
+                step="50"
+                value={rate}
+                onChange={(e) => setRate(Number(e.target.value))}
+                required
+                className="w-full pl-8 pr-3 py-2.5 rounded-xl border border-stone-border bg-stone-warm/50 text-sm font-mono font-bold text-brand-950 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-900/20 focus:border-brand-900"
+              />
+            </div>
           </div>
 
           {/* Action buttons */}

@@ -22,7 +22,7 @@ export const INITIAL_PRICING_CATALOG: MasterPricingCatalog = {
           id: 'cat-k-counter',
           name: 'Countertop',
           subCategories: [
-            { id: 'sub-k-counter-1', name: 'Granite / Quartz', pricingType: 'variable', rate: 0, description: 'Selected premium slab rate evaluated per square footage based on global benchmark' }
+            { id: 'sub-k-counter-1', name: 'Granite / Quartz', pricingType: 'fixed', rate: 2200, description: 'Selected premium slab rate evaluated per square footage based on benchmark' }
           ]
         },
         {
@@ -87,7 +87,7 @@ export const INITIAL_PRICING_CATALOG: MasterPricingCatalog = {
           name: 'TV Wall Unit',
           subCategories: [
             { id: 'sub-b-tv-1', name: 'Floating Console with Drawer', pricingType: 'fixed', rate: 1750, description: 'Sleek concealed wire routing console' },
-            { id: 'sub-b-tv-2', name: 'Feature Wall Cladding', pricingType: 'variable', rate: 0, description: 'Custom wall accents and acoustic fabric / marble finish' }
+            { id: 'sub-b-tv-2', name: 'Feature Wall Cladding', pricingType: 'fixed', rate: 1850, description: 'Custom wall accents and acoustic fabric / marble finish' }
           ]
         }
       ]
@@ -184,7 +184,7 @@ export const INITIAL_PRICING_CATALOG: MasterPricingCatalog = {
           name: 'Custom Storage & Millwork',
           subCategories: [
             { id: 'sub-c-1', name: 'Standard Modular Unit', pricingType: 'fixed', rate: 1500, description: 'Custom sized storage configured to site specifications' },
-            { id: 'sub-c-2', name: 'Architectural Feature Work', pricingType: 'variable', rate: 0, description: 'Specialized bespoke carpentry using global base benchmark' }
+            { id: 'sub-c-2', name: 'Architectural Feature Work', pricingType: 'fixed', rate: 1600, description: 'Specialized bespoke carpentry using high-grade plywood' }
           ]
         }
       ]

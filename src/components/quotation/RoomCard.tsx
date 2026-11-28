@@ -6,9 +6,7 @@ import {
   Home, 
   Plus, 
   Trash2, 
-  Sliders, 
   Sparkles, 
-  Maximize2,
   Lock,
   Edit2
 } from 'lucide-react';
@@ -40,25 +38,25 @@ export const RoomCard: React.FC<RoomCardProps> = ({
     (c) => c.id === room.roomId || c.name.toLowerCase() === room.roomName.toLowerCase()
   ) || catalogRooms[0];
 
-  // Update room measurements (sq.ft)
-  const handleAreaChange = (newArea: number) => {
+  // Update individual line item area (sq.ft) and recalculate base price
+  const handleItemAreaChange = (itemId: string, newArea: number) => {
     const validArea = Math.max(1, newArea);
-    // Optionally recalculate base prices for items that haven't been customized separately
     const updatedItems = room.items.map((item) => {
-      const newBase = calculateBasePrice(item.ratePerSqFt, validArea);
-      // If finalPrice was equal to old basePrice, update finalPrice to newBase
-      const wasUntouched = item.finalPrice === item.basePrice;
-      return {
-        ...item,
-        area: validArea,
-        basePrice: newBase,
-        finalPrice: wasUntouched ? newBase : item.finalPrice,
-      };
+      if (item.id === itemId) {
+        const newBase = calculateBasePrice(item.ratePerSqFt, validArea);
+        const wasUntouched = item.finalPrice === item.basePrice;
+        return {
+          ...item,
+          area: validArea,
+          basePrice: newBase,
+          finalPrice: wasUntouched ? newBase : item.finalPrice,
+        };
+      }
+      return item;
     });
 
     onUpdateRoom({
       ...room,
-      roomArea: validArea,
       items: updatedItems,
     });
   };
@@ -119,20 +117,6 @@ export const RoomCard: React.FC<RoomCardProps> = ({
                 {room.items.length} {room.items.length === 1 ? 'material' : 'materials'}
               </span>
             </div>
-          </div>
-
-          {/* Room Area Measurement Input */}
-          <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-stone-border shadow-xs ml-0 md:ml-4">
-            <Maximize2 className="w-3.5 h-3.5 text-accent-gold" />
-            <span className="text-xs font-semibold text-slate-600">Room Total Area:</span>
-            <input
-              type="number"
-              min="1"
-              value={room.roomArea}
-              onChange={(e) => handleAreaChange(Number(e.target.value))}
-              className="w-16 px-1.5 py-0.5 font-mono font-bold text-brand-950 text-sm border-b border-brand-800 focus:outline-none"
-            />
-            <span className="text-xs text-slate-400 font-medium">sq.ft</span>
           </div>
         </div>
 
@@ -201,27 +185,27 @@ export const RoomCard: React.FC<RoomCardProps> = ({
                     {/* Column 1 – Category */}
                     <td className="py-3 px-4 font-semibold text-brand-950 align-top">
                       <div>{item.categoryName}</div>
-                      {item.notes && (
-                        <div className="text-[10px] text-slate-400 font-normal mt-0.5 max-w-xs">
-                          {item.notes}
-                        </div>
-                      )}
                     </td>
 
                     {/* Column 2 – Subcategory / Finish */}
                     <td className="py-3 px-4 text-slate-700 align-top">
                       <div className="font-medium text-slate-900">{item.subCategoryName}</div>
-                      <div className="text-[10px] text-slate-400 mt-0.5">
-                        {item.pricingType === 'variable' ? (
-                          <span className="inline-flex items-center gap-1 text-indigo-700 font-medium">
-                            <Sliders className="w-2.5 h-2.5" />
-                            Variable ({formatINR(item.ratePerSqFt)}/sq.ft) × {item.area} sq.ft
-                          </span>
-                        ) : (
-                          <span>
-                            {formatINR(item.ratePerSqFt)}/sq.ft × {item.area} sq.ft
-                          </span>
-                        )}
+                      {item.notes && (
+                        <div className="text-[11px] text-slate-500 font-normal mt-0.5">
+                          • {item.notes}
+                        </div>
+                      )}
+                      <div className="text-[11px] text-slate-500 mt-1 flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[10px] text-slate-400 font-mono">{formatINR(item.ratePerSqFt)}/sq.ft ×</span>
+                        <input
+                          type="number"
+                          min="1"
+                          value={item.area}
+                          onChange={(e) => handleItemAreaChange(item.id, Number(e.target.value))}
+                          className="w-16 px-1.5 py-0.5 text-xs font-mono font-bold text-brand-950 bg-stone-50 border border-stone-200 rounded focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-900"
+                          title="Area for this subcategory (sq.ft)"
+                        />
+                        <span className="text-[10px] text-slate-400 font-medium">sq.ft</span>
                       </div>
                     </td>
 

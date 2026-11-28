@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { Quotation } from '../types/quotation';
+import React, { useState, useMemo } from 'react';
+import { Quotation, QuotationLineItem } from '../types/quotation';
 import { CompanySettings } from '../types/settings';
 import { Logo } from '../components/common/Logo';
 import { formatINR, numberToWordsINR } from '../utils/formatCurrency';
 import { exportElementToPdf } from '../utils/pdfExport';
+import { pricingService } from '../services/pricingService';
 import { 
   Printer, 
   Download, 
@@ -37,6 +38,23 @@ export const QuotationPreview: React.FC<QuotationPreviewProps> = ({
 }) => {
   const [isExporting, setIsExporting] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Catalog lookup map for fallback descriptions
+  const catalog = useMemo(() => pricingService.getCatalog(), []);
+  const getItemDescription = (item: QuotationLineItem): string => {
+    if (item.description && item.description.trim()) return item.description.trim();
+    if (item.notes && item.notes.trim()) return item.notes.trim();
+    // Search catalog by subcategory id or name
+    for (const r of catalog.rooms) {
+      for (const c of r.categories) {
+        const sub = c.subCategories.find(
+          (s) => s.id === item.subCategoryId || s.name.toLowerCase() === item.subCategoryName.toLowerCase()
+        );
+        if (sub?.description) return sub.description;
+      }
+    }
+    return '';
+  };
 
   // Compute validity date
   const quotationDateObj = new Date(quotation.customer.quotationDate || new Date());
@@ -144,7 +162,7 @@ export const QuotationPreview: React.FC<QuotationPreviewProps> = ({
         {/* Document Header / Company Letterhead */}
         <div className="flex flex-col sm:flex-row justify-between items-start gap-6 pb-6 border-b-2 border-brand-900">
           <div>
-            <Logo size="lg" variant="dark" />
+            <Logo size="lg" variant="dark" tagline={settings.tagline} />
             <p className="text-xs text-slate-500 mt-2 font-medium max-w-sm">
               {settings.addressLine1}, {settings.addressLine2}, {settings.city}, {settings.state} – {settings.pincode}
             </p>
@@ -164,7 +182,7 @@ export const QuotationPreview: React.FC<QuotationPreviewProps> = ({
             </div>
             {settings.gstin && (
               <div className="text-[10px] text-slate-400 mt-1 uppercase font-mono">
-                GSTIN: {settings.gstin} | PAN: {settings.pan}
+                GSTIN: {settings.gstin}
               </div>
             )}
           </div>
@@ -239,9 +257,6 @@ export const QuotationPreview: React.FC<QuotationPreviewProps> = ({
             <h3 className="text-sm font-bold uppercase tracking-wider text-brand-950">
               Room-Wise Scope of Work & Pricing Schedule
             </h3>
-            <span className="text-[11px] text-slate-400">
-              All prices inclusive of factory finishing & hardware
-            </span>
           </div>
 
           {quotation.rooms.map((room, roomIdx) => {
@@ -258,49 +273,49 @@ export const QuotationPreview: React.FC<QuotationPreviewProps> = ({
                     <span className="font-serif font-bold text-sm tracking-wide">
                       {room.roomName}
                     </span>
-                    <span className="text-xs text-slate-400 font-normal">
-                      ({room.roomArea} sq.ft)
-                    </span>
                   </div>
                   <div className="text-xs font-mono font-bold text-accent-gold">
                     Subtotal: {formatINR(roomTotal)}
                   </div>
                 </div>
 
-                {/* 3-Column Table */}
+                {/* 3-Column Table: Category | Subcategory / Finish | Description */}
                 <div className="border border-stone-border rounded-lg overflow-hidden">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
                       <tr className="bg-stone-100 text-slate-700 font-semibold uppercase text-[10px] tracking-wider border-b border-stone-border">
-                        <th className="py-2.5 px-4 w-1/3">Category</th>
-                        <th className="py-2.5 px-4 w-1/2">Subcategory / Finish</th>
-                        <th className="py-2.5 px-4 w-1/4 text-right">Final Price (₹)</th>
+                        <th className="py-2.5 px-4 w-1/4">Category</th>
+                        <th className="py-2.5 px-4 w-1/3">Subcategory / Finish</th>
+                        <th className="py-2.5 px-4 w-5/12">Description</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-stone-100">
-                      {room.items.map((item) => (
-                        <tr key={item.id} className="hover:bg-stone-50/50">
-                          {/* Column 1 – Category */}
-                          <td className="py-3 px-4 font-semibold text-brand-950 align-top">
-                            {item.categoryName}
-                          </td>
+                      {room.items.map((item) => {
+                        const description = getItemDescription(item);
 
-                          {/* Column 2 – Subcategory / Finish */}
-                          <td className="py-3 px-4 text-slate-700 align-top">
-                            <div className="font-medium text-slate-900">{item.subCategoryName}</div>
-                            {item.notes && (
-                              <div className="text-[11px] text-slate-500 font-normal mt-0.5">
-                                • {item.notes}
-                              </div>
-                            )}
-                          </td>
+                        return (
+                          <tr key={item.id} className="hover:bg-stone-50/50">
+                            {/* Column 1 – Category */}
+                            <td className="py-3 px-4 font-semibold text-brand-950 align-top">
+                              {item.categoryName}
+                            </td>
 
-                          {/* Column 3 – Final Price (₹) */}
-                          <td className="py-3 px-4 text-right font-mono font-bold text-sm text-brand-950 align-top">
-                            {formatINR(item.finalPrice)}
-                          </td>
-                        </tr>
-                      ))}
+                            {/* Column 2 – Subcategory / Finish */}
+                            <td className="py-3 px-4 text-slate-700 align-top">
+                              <div className="font-medium text-slate-900">{item.subCategoryName}</div>
+                            </td>
+
+                            {/* Column 3 – Description (Replaces Subcategory Price) */}
+                            <td className="py-3 px-4 text-slate-600 align-top text-xs leading-relaxed">
+                              {description ? (
+                                <span>{description}</span>
+                              ) : (
+                                <span className="text-slate-300 italic">—</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -367,6 +382,58 @@ export const QuotationPreview: React.FC<QuotationPreviewProps> = ({
           </div>
         </div>
 
+        {/* Material Specifications */}
+        {settings.materialSpecifications && settings.materialSpecifications.length > 0 && (
+          <div 
+            id="material-specs-section"
+            className="mt-8 pt-6 border-t border-stone-border avoid-break"
+            style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
+          >
+            <h4 className="text-xs font-bold uppercase tracking-wider text-brand-950 mb-3">
+              Material Specifications:
+            </h4>
+            <div className="border border-stone-800 rounded-lg overflow-hidden">
+              <table 
+                className="w-full text-left text-xs border-collapse"
+                style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
+              >
+                <thead>
+                  <tr className="bg-[#fce59f] text-slate-900 font-bold border-b border-stone-800">
+                    <th className="py-2.5 px-3 border-r border-stone-800 w-[25%] font-bold">
+                      Description
+                    </th>
+                    <th className="py-2.5 px-3 border-r border-stone-800 w-[50%] font-bold">
+                      Spec
+                    </th>
+                    <th className="py-2.5 px-3 w-[25%] font-bold">
+                      Brand
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-800">
+                  {settings.materialSpecifications.map((row, idx) => (
+                    <tr 
+                      key={idx} 
+                      className="border-b border-stone-800 last:border-b-0"
+                      style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
+                    >
+                      <td className="py-2.5 px-3 border-r border-stone-800 font-medium text-slate-900 align-top">
+                        {row.description}
+                      </td>
+                      <td className="py-2.5 px-3 border-r border-stone-800 text-slate-800 whitespace-pre-line align-top">
+                        {row.spec}
+                      </td>
+                      <td className="py-2.5 px-3 text-slate-800 align-top">
+                        {row.brand}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         {/* Terms & Conditions */}
         <div className="mt-6 pt-6 border-t border-stone-border avoid-break">
           <h4 className="text-xs font-bold uppercase tracking-wider text-brand-950 mb-2">
@@ -379,22 +446,73 @@ export const QuotationPreview: React.FC<QuotationPreviewProps> = ({
           </ol>
         </div>
 
-        {/* Signatures */}
-        <div className="mt-12 pt-8 border-t border-stone-border grid grid-cols-2 gap-8 avoid-break">
-          <div>
-            <div className="h-14 border-b border-dashed border-slate-300"></div>
-            <div className="text-xs font-bold text-brand-950 mt-2">
-              For Blue Craft Design Studio
+        {/* Dynamic Custom Sections */}
+        {settings.sections?.map((section, sIdx) => (
+          (section.title || (section.points && section.points.length > 0)) ? (
+            <div key={sIdx} className="mt-6 pt-6 border-t border-stone-border avoid-break">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-brand-950 mb-2">
+                {section.title || `Section ${sIdx + 1}`}
+              </h4>
+              <ol className="list-decimal list-inside space-y-1 text-[11px] text-slate-600 leading-relaxed">
+                {section.points.map((pt, pIdx) => (
+                  <li key={pIdx}>{pt}</li>
+                ))}
+              </ol>
             </div>
-            <div className="text-[10px] text-slate-400">Authorized Signature & Seal</div>
+          ) : null
+        ))}
+
+        {/* Signatures & Formal Acceptance Block */}
+        <div 
+          id="signatures-section"
+          className="mt-16 pt-8 border-t-2 border-stone-200 avoid-break"
+          style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
+        >
+          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-3">
+            Authorization &amp; Customer Acceptance
           </div>
 
-          <div>
-            <div className="h-14 border-b border-dashed border-slate-300"></div>
-            <div className="text-xs font-bold text-brand-950 mt-2">
-              Customer Acceptance
+          <div className="grid grid-cols-2 gap-6 sm:gap-10">
+            {/* Studio Signature Box */}
+            <div className="border border-stone-300 rounded-xl p-4 bg-stone-50/70 flex flex-col justify-between min-h-[140px]">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                Authorized Signatory
+              </div>
+              <div className="py-6 flex items-center justify-center">
+                <span className="text-[11px] text-slate-300 italic tracking-wider select-none">
+                  (Signature &amp; Company Seal)
+                </span>
+              </div>
+              <div className="border-t border-dashed border-slate-400 pt-2.5">
+                <div className="text-xs font-bold text-brand-950 font-serif">
+                  For Blue Craft Design Studio
+                </div>
+                <div className="text-[10px] text-slate-500 mt-0.5">
+                  Authorized Signature &amp; Stamp
+                </div>
+              </div>
             </div>
-            <div className="text-[10px] text-slate-400">Client Signature & Date</div>
+
+            {/* Client Signature Box */}
+            <div className="border border-stone-300 rounded-xl p-4 bg-stone-50/70 flex flex-col justify-between min-h-[140px]">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                Client Acknowledgment
+              </div>
+              <div className="py-6 flex items-center justify-center">
+                <span className="text-[11px] text-slate-300 italic tracking-wider select-none">
+                  (Client Signature)
+                </span>
+              </div>
+              <div className="border-t border-dashed border-slate-400 pt-2.5">
+                <div className="text-xs font-bold text-brand-950 font-serif">
+                  Customer Acceptance
+                </div>
+                <div className="text-[10px] text-slate-500 mt-0.5 flex items-center justify-between">
+                  <span>Client Signature &amp; Date</span>
+                  <span className="text-slate-400 text-[9px] font-mono">Date: ____ / ____ / 2026</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

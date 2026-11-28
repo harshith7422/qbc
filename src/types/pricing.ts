@@ -3,8 +3,8 @@ export type PricingType = 'fixed' | 'variable';
 export interface SubCategoryItem {
   id: string;
   name: string; // e.g. Acrylic, Laminate, PU Finish, Granite / Quartz
-  pricingType: PricingType;
-  rate: number; // If fixed: rate per sq.ft. If variable: 0 or multiplier, or fallback to global base rate
+  pricingType?: PricingType;
+  rate: number; // Rate per sq.ft
   description?: string;
 }
 

@@ -58,7 +58,8 @@
   }
 
   .avoid-break {
-    page-break-inside: avoid;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   @page {

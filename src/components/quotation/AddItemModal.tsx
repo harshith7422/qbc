@@ -9,7 +9,7 @@ interface AddItemModalProps {
   isOpen: boolean;
   onClose: () => void;
   roomCatalog: RoomCatalog | undefined;
-  roomArea: number;
+  roomArea?: number;
   globalBaseRate: number;
   onAddItem: (item: QuotationLineItem) => void;
 }
@@ -26,7 +26,7 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({
 
   const [selectedCatId, setSelectedCatId] = useState<string>('');
   const [selectedSubId, setSelectedSubId] = useState<string>('');
-  const [itemArea, setItemArea] = useState<number>(roomArea || 30);
+  const [itemArea, setItemArea] = useState<number>(30);
   const [finalPrice, setFinalPrice] = useState<number>(0);
   const [isFinalPriceManuallyChanged, setIsFinalPriceManuallyChanged] = useState<boolean>(false);
   const [notes, setNotes] = useState<string>('');
@@ -40,9 +40,11 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({
         setSelectedSubId(firstCat.subCategories[0].id);
       }
     }
-    setItemArea(roomArea > 0 ? roomArea : 30);
-    setIsFinalPriceManuallyChanged(false);
-  }, [isOpen, roomCatalog, roomArea]);
+    if (isOpen) {
+      setItemArea(30);
+      setIsFinalPriceManuallyChanged(false);
+    }
+  }, [isOpen, roomCatalog]);
 
   const currentCategory: CategoryItem | undefined = categories.find((c) => c.id === selectedCatId);
   const currentSubCategory: SubCategoryItem | undefined = currentCategory?.subCategories.find(
@@ -61,11 +63,8 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({
     setIsFinalPriceManuallyChanged(false);
   };
 
-  // Determine rate: if fixed -> sub.rate; if variable -> globalBaseRate
-  const effectiveRate =
-    currentSubCategory?.pricingType === 'variable'
-      ? globalBaseRate
-      : currentSubCategory?.rate || 0;
+  // Determine rate directly from finish rate
+  const effectiveRate = currentSubCategory?.rate || 0;
 
   // Calculate Base Price
   const calculatedBasePrice = calculateBasePrice(effectiveRate, itemArea);
@@ -92,12 +91,13 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({
       categoryName: currentCategory.name,
       subCategoryId: currentSubCategory.id,
       subCategoryName: currentSubCategory.name,
-      pricingType: currentSubCategory.pricingType,
+      pricingType: currentSubCategory.pricingType || 'fixed',
       ratePerSqFt: effectiveRate,
       area: itemArea,
       basePrice: calculatedBasePrice,
       finalPrice: Number(finalPrice) || calculatedBasePrice,
-      notes: notes.trim() || undefined,
+      notes: notes.trim() || currentSubCategory.description || undefined,
+      description: currentSubCategory.description || notes.trim() || undefined,
     };
 
     onAddItem(newItem);
@@ -163,7 +163,7 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({
             >
               {currentCategory?.subCategories.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.name} ({s.pricingType === 'variable' ? `Variable: ₹${globalBaseRate}` : `₹${s.rate}`}/sq.ft)
+                  {s.name} (₹{s.rate}/sq.ft)
                 </option>
               ))}
             </select>

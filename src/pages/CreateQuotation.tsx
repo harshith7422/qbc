@@ -55,7 +55,7 @@ export const CreateQuotation: React.FC<CreateQuotationProps> = ({
     const kitchenCatalog = catalog.rooms.find((r) => r.name.toLowerCase() === 'kitchen') || catalog.rooms[0];
     const initialItem = kitchenCatalog?.categories[0]?.subCategories[0];
     const area = 30;
-    const rate = initialItem?.pricingType === 'variable' ? catalog.globalBaseRate : (initialItem?.rate || 1950);
+    const rate = initialItem?.rate || 1950;
     const base = calculateBasePrice(rate, area);
 
     return [
@@ -72,12 +72,12 @@ export const CreateQuotation: React.FC<CreateQuotationProps> = ({
                 categoryName: kitchenCatalog.categories[0].name,
                 subCategoryId: initialItem.id,
                 subCategoryName: initialItem.name,
-                pricingType: initialItem.pricingType,
+                pricingType: initialItem.pricingType || 'fixed',
                 ratePerSqFt: rate,
                 area: area,
                 basePrice: base,
                 finalPrice: base + 3000, // sample prefilled quoted price
-                notes: 'BWR grade marine carcass with seamless edge banding',
+                notes: initialItem.description || 'BWR grade marine carcass with seamless edge banding',
               },
             ]
           : [],

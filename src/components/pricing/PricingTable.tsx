@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { RoomCatalog, CategoryItem, SubCategoryItem, PricingType } from '../../types/pricing';
-import { Plus, Trash2, Edit3, Check, X, Sparkles, Layers, Sliders } from 'lucide-react';
+import { Plus, Trash2, Edit3, Check, X, Sparkles, Layers } from 'lucide-react';
 import { formatINR } from '../../utils/formatCurrency';
 
 interface PricingTableProps {
@@ -17,7 +17,7 @@ interface FlatPricingRow {
   categoryName: string;
   subCategoryId: string;
   subCategoryName: string;
-  pricingType: PricingType;
+  pricingType?: PricingType;
   rate: number;
   description?: string;
 }
@@ -34,7 +34,7 @@ export const PricingTable: React.FC<PricingTableProps> = ({
   const [editingSubId, setEditingSubId] = useState<string | null>(null);
   const [editCategoryName, setEditCategoryName] = useState<string>('');
   const [editSubName, setEditSubName] = useState<string>('');
-  const [editPricingType, setEditPricingType] = useState<PricingType>('fixed');
+  const [editDescription, setEditDescription] = useState<string>('');
   const [editRate, setEditRate] = useState<number>(0);
 
   // Flatten categories & subcategories into a clean list for the table
@@ -57,7 +57,7 @@ export const PricingTable: React.FC<PricingTableProps> = ({
     setEditingSubId(row.subCategoryId);
     setEditCategoryName(row.categoryName);
     setEditSubName(row.subCategoryName);
-    setEditPricingType(row.pricingType);
+    setEditDescription(row.description || '');
     setEditRate(row.rate);
   };
 
@@ -77,8 +77,8 @@ export const PricingTable: React.FC<PricingTableProps> = ({
           return {
             ...sub,
             name: editSubName.trim() || sub.name,
-            pricingType: editPricingType,
-            rate: editPricingType === 'variable' ? 0 : Number(editRate) || 0,
+            description: editDescription.trim() || undefined,
+            rate: Number(editRate) || 0,
           };
         }
         return sub;
@@ -150,10 +150,10 @@ export const PricingTable: React.FC<PricingTableProps> = ({
         <table className="w-full text-left text-xs border-collapse">
           <thead>
             <tr className="bg-stone-100/75 border-b border-stone-border text-slate-600 font-semibold tracking-wider uppercase text-[11px]">
-              <th className="py-3.5 px-5 w-1/4">Category</th>
-              <th className="py-3.5 px-5 w-1/3">Sub-Category / Finish</th>
-              <th className="py-3.5 px-5 w-1/6">Pricing Type</th>
-              <th className="py-3.5 px-5 w-1/6 text-right">Rate (₹ / sq.ft)</th>
+              <th className="py-3.5 px-5 w-1/5">Category</th>
+              <th className="py-3.5 px-5 w-1/4">Sub-Category / Finish</th>
+              <th className="py-3.5 px-5 w-1/3">Description</th>
+              <th className="py-3.5 px-5 w-36 text-right">Rate (₹ / sq.ft)</th>
               <th className="py-3.5 px-5 w-24 text-center">Actions</th>
             </tr>
           </thead>
@@ -184,7 +184,7 @@ export const PricingTable: React.FC<PricingTableProps> = ({
                     }`}
                   >
                     {/* Column 1: Category */}
-                    <td className="py-3.5 px-5 font-medium text-brand-950">
+                    <td className="py-3.5 px-5 font-medium text-brand-950 align-top">
                       {isEditing ? (
                         <input
                           type="text"
@@ -198,83 +198,57 @@ export const PricingTable: React.FC<PricingTableProps> = ({
                     </td>
 
                     {/* Column 2: Sub-Category / Finish */}
-                    <td className="py-3.5 px-5 text-slate-700">
+                    <td className="py-3.5 px-5 text-slate-700 align-top">
                       {isEditing ? (
                         <input
                           type="text"
                           value={editSubName}
                           onChange={(e) => setEditSubName(e.target.value)}
+                          placeholder="Sub-category name"
                           className="w-full px-2.5 py-1.5 rounded-lg border border-amber-300 bg-white font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-brand-900"
                         />
                       ) : (
-                        <div>
-                          <div className="font-medium text-slate-800">{row.subCategoryName}</div>
-                          {row.description && (
-                            <div className="text-[10px] text-slate-400 mt-0.5 max-w-sm line-clamp-1">
-                              {row.description}
-                            </div>
-                          )}
+                        <div className="font-semibold text-slate-900">{row.subCategoryName}</div>
+                      )}
+                    </td>
+
+                    {/* Column 3: Description (Separate Column) */}
+                    <td className="py-3.5 px-5 text-slate-600 align-top">
+                      {isEditing ? (
+                        <textarea
+                          rows={2}
+                          value={editDescription}
+                          onChange={(e) => setEditDescription(e.target.value)}
+                          placeholder="Material specification / description note (optional)..."
+                          className="w-full px-2.5 py-1.5 rounded-lg border border-amber-300 bg-white text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-900 resize-none"
+                        />
+                      ) : (
+                        <div className="text-xs text-slate-600 leading-relaxed">
+                          {row.description || <span className="text-slate-300 italic">—</span>}
                         </div>
                       )}
                     </td>
 
-                    {/* Column 3: Pricing Type */}
-                    <td className="py-3.5 px-5">
-                      {isEditing ? (
-                        <select
-                          value={editPricingType}
-                          onChange={(e) => setEditPricingType(e.target.value as PricingType)}
-                          className="px-2.5 py-1.5 rounded-lg border border-amber-300 bg-white text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-brand-900"
-                        >
-                          <option value="fixed">Fixed</option>
-                          <option value="variable">Variable</option>
-                        </select>
-                      ) : (
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
-                            row.pricingType === 'fixed'
-                              ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                              : 'bg-indigo-50 text-indigo-800 border border-indigo-200'
-                          }`}
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              row.pricingType === 'fixed' ? 'bg-emerald-500' : 'bg-indigo-500'
-                            }`}
-                          />
-                          {row.pricingType === 'fixed' ? 'Fixed' : 'Variable'}
-                        </span>
-                      )}
-                    </td>
-
                     {/* Column 4: Rate (₹) */}
-                    <td className="py-3.5 px-5 text-right font-mono text-sm">
+                    <td className="py-3.5 px-5 text-right font-mono text-sm align-top">
                       {isEditing ? (
-                        editPricingType === 'fixed' ? (
-                          <div className="flex items-center justify-end gap-1">
-                            <span className="text-slate-400">₹</span>
-                            <input
-                              type="number"
-                              min="0"
-                              value={editRate}
-                              onChange={(e) => setEditRate(Number(e.target.value))}
-                              className="w-24 px-2 py-1 text-right rounded-lg border border-amber-300 bg-white font-bold font-mono focus:outline-none focus:ring-1 focus:ring-brand-900"
-                            />
-                          </div>
-                        ) : (
-                          <span className="text-slate-400 text-xs italic">
-                            Uses global rate (₹{globalBaseRate})
-                          </span>
-                        )
-                      ) : row.pricingType === 'fixed' ? (
-                        <span className="font-bold text-brand-950">
-                          {formatINR(row.rate)}
-                        </span>
+                        <div className="flex items-center justify-end gap-1">
+                          <span className="text-slate-400">₹</span>
+                          <input
+                            type="number"
+                            min="0"
+                            value={editRate}
+                            onChange={(e) => setEditRate(Number(e.target.value))}
+                            className="w-24 px-2 py-1 text-right rounded-lg border border-amber-300 bg-white font-bold font-mono focus:outline-none focus:ring-1 focus:ring-brand-900"
+                          />
+                        </div>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-indigo-700 font-medium text-xs bg-indigo-50/80 px-2 py-0.5 rounded border border-indigo-100">
-                          <Sliders className="w-3 h-3 text-indigo-500" />
-                          <span>Uses global rate ({formatINR(globalBaseRate)})</span>
-                        </span>
+                        <div className="font-bold text-brand-950">
+                          {formatINR(row.rate)}
+                          <span className="text-[10px] text-slate-400 font-sans font-normal ml-0.5">
+                            /sq.ft
+                          </span>
+                        </div>
                       )}
                     </td>
 
