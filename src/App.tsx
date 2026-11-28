@@ -1,12 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Sidebar, NavTab } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
-import { Dashboard } from './pages/Dashboard';
-import { CreateQuotation } from './pages/CreateQuotation';
-import { QuotationHistory } from './pages/QuotationHistory';
-import { QuotationPreview } from './pages/QuotationPreview';
-import { MasterPricing } from './pages/MasterPricing';
-import { Settings } from './pages/Settings';
+
+// Lazy-load heavy page components — each becomes its own code-split chunk
+const Dashboard       = lazy(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard })));
+const CreateQuotation = lazy(() => import('./pages/CreateQuotation').then(m => ({ default: m.CreateQuotation })));
+const QuotationHistory = lazy(() => import('./pages/QuotationHistory').then(m => ({ default: m.QuotationHistory })));
+const QuotationPreview = lazy(() => import('./pages/QuotationPreview').then(m => ({ default: m.QuotationPreview })));
+const MasterPricing   = lazy(() => import('./pages/MasterPricing').then(m => ({ default: m.MasterPricing })));
+const Settings        = lazy(() => import('./pages/Settings').then(m => ({ default: m.Settings })));
+
+// Lightweight fallback shown while a page chunk is loading
+const PageLoader: React.FC = () => (
+  <div className="flex items-center justify-center h-64">
+    <div className="w-8 h-8 border-4 border-brand-900 border-t-transparent rounded-full animate-spin" />
+  </div>
+);
 
 import { pricingService } from './services/pricingService';
 import { quotationService } from './services/quotationService';
@@ -129,6 +138,7 @@ export const App: React.FC = () => {
         />
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+          <Suspense fallback={<PageLoader />}>
           {currentTab === 'dashboard' && (
             <Dashboard
               quotations={quotations}
@@ -197,6 +207,7 @@ export const App: React.FC = () => {
               onResetAllData={handleResetAllData}
             />
           )}
+          </Suspense>
         </main>
       </div>
     </div>
