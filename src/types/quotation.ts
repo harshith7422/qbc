@@ -11,7 +11,9 @@ export interface QuotationLineItem {
   subCategoryName: string;
   pricingType?: PricingType;
   ratePerSqFt: number; // Snapshot of rate used at creation time
-  area: number; // in sq.ft
+  height?: number; // Height in ft
+  width?: number; // Width in ft
+  area: number; // in sq.ft (height * width)
   basePrice: number; // Internal Reference: ratePerSqFt * area
   finalPrice: number; // Manually editable quoted price
   notes?: string;

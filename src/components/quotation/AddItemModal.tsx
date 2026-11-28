@@ -26,6 +26,8 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({
 
   const [selectedCatId, setSelectedCatId] = useState<string>('');
   const [selectedSubId, setSelectedSubId] = useState<string>('');
+  const [height, setHeight] = useState<number | undefined>(6);
+  const [width, setWidth] = useState<number | undefined>(5);
   const [itemArea, setItemArea] = useState<number>(30);
   const [finalPrice, setFinalPrice] = useState<number>(0);
   const [isFinalPriceManuallyChanged, setIsFinalPriceManuallyChanged] = useState<boolean>(false);
@@ -41,10 +43,33 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({
       }
     }
     if (isOpen) {
+      setHeight(6);
+      setWidth(5);
       setItemArea(30);
       setIsFinalPriceManuallyChanged(false);
     }
   }, [isOpen, roomCatalog]);
+
+  const handleHeightChange = (newH: number | undefined) => {
+    setHeight(newH);
+    if (newH !== undefined && width !== undefined && newH > 0 && width > 0) {
+      setItemArea(Math.round(newH * width * 100) / 100);
+      setIsFinalPriceManuallyChanged(false);
+    }
+  };
+
+  const handleWidthChange = (newW: number | undefined) => {
+    setWidth(newW);
+    if (height !== undefined && newW !== undefined && height > 0 && newW > 0) {
+      setItemArea(Math.round(height * newW * 100) / 100);
+      setIsFinalPriceManuallyChanged(false);
+    }
+  };
+
+  const handleAreaChange = (newArea: number) => {
+    setItemArea(newArea);
+    setIsFinalPriceManuallyChanged(false);
+  };
 
   const currentCategory: CategoryItem | undefined = categories.find((c) => c.id === selectedCatId);
   const currentSubCategory: SubCategoryItem | undefined = currentCategory?.subCategories.find(
@@ -93,6 +118,8 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({
       subCategoryName: currentSubCategory.name,
       pricingType: currentSubCategory.pricingType || 'fixed',
       ratePerSqFt: effectiveRate,
+      height: height,
+      width: width,
       area: itemArea,
       basePrice: calculatedBasePrice,
       finalPrice: Number(finalPrice) || calculatedBasePrice,
@@ -174,37 +201,87 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({
             )}
           </div>
 
-          {/* Area & Calculated Base Price Row */}
-          <div className="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-stone-50 border border-stone-200">
+          {/* Dimensions (H × W Ratio) & Applicable Area Row */}
+          <div className="p-3.5 rounded-xl bg-stone-50 border border-stone-200 space-y-3">
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">
-                Applicable Area (Sq.Ft)
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
+                Dimensions (Height × Width Ratio)
               </label>
-              <input
-                type="number"
-                min="1"
-                step="1"
-                value={itemArea}
-                onChange={(e) => {
-                  setItemArea(Math.max(1, Number(e.target.value)));
-                  setIsFinalPriceManuallyChanged(false);
-                }}
-                className="w-full px-3 py-2 rounded-lg border border-stone-border bg-white text-sm font-bold font-mono text-brand-950 focus:outline-none focus:ring-1 focus:ring-brand-900"
-              />
-              <span className="text-[10px] text-slate-400">Defaults to room area</span>
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1">
+                    <span className="font-semibold">Height (H)</span>
+                    <span className="text-slate-400 text-[10px]">ft</span>
+                  </div>
+                  <input
+                    type="number"
+                    min="0.1"
+                    step="0.5"
+                    placeholder="e.g. 6"
+                    value={height ?? ''}
+                    onChange={(e) => handleHeightChange(e.target.value === '' ? undefined : Number(e.target.value))}
+                    className="w-full px-3 py-1.5 rounded-lg border border-stone-border bg-white text-sm font-bold font-mono text-brand-950 focus:outline-none focus:ring-1 focus:ring-brand-900"
+                  />
+                </div>
+                <div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1">
+                    <span className="font-semibold">Width (W)</span>
+                    <span className="text-slate-400 text-[10px]">ft</span>
+                  </div>
+                  <input
+                    type="number"
+                    min="0.1"
+                    step="0.5"
+                    placeholder="e.g. 5"
+                    value={width ?? ''}
+                    onChange={(e) => handleWidthChange(e.target.value === '' ? undefined : Number(e.target.value))}
+                    className="w-full px-3 py-1.5 rounded-lg border border-stone-border bg-white text-sm font-bold font-mono text-brand-950 focus:outline-none focus:ring-1 focus:ring-brand-900"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1 flex items-center gap-1">
-                <Calculator className="w-3 h-3 text-accent-gold" />
-                Base Price (Internal)
-              </label>
-              <div className="px-3 py-2 rounded-lg bg-stone-200/60 font-mono font-bold text-slate-700 text-sm">
-                {formatINR(calculatedBasePrice)}
+            <div className="grid grid-cols-2 gap-3 pt-2.5 border-t border-stone-200">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">
+                  Total Area (Sq.Ft)
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="0.1"
+                    step="0.5"
+                    value={itemArea}
+                    onChange={(e) => handleAreaChange(Math.max(0.1, Number(e.target.value)))}
+                    className="w-full pl-3 pr-11 py-1.5 rounded-lg border border-stone-border bg-white text-sm font-bold font-mono text-brand-950 focus:outline-none focus:ring-1 focus:ring-brand-900"
+                  />
+                  <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] text-slate-400 font-medium">
+                    sq.ft
+                  </span>
+                </div>
+                {height && width ? (
+                  <span className="text-[10px] text-emerald-700 font-medium block mt-1">
+                    {height} ft × {width} ft = {Math.round(height * width * 100) / 100} sq.ft
+                  </span>
+                ) : (
+                  <span className="text-[10px] text-slate-400 block mt-1">
+                    Calculated from H × W (or type directly)
+                  </span>
+                )}
               </div>
-              <span className="text-[10px] text-slate-500">
-                {formatINR(effectiveRate)} × {itemArea} sq.ft
-              </span>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1 flex items-center gap-1">
+                  <Calculator className="w-3 h-3 text-accent-gold" />
+                  Base Price (Internal)
+                </label>
+                <div className="px-3 py-1.5 rounded-lg bg-stone-200/60 font-mono font-bold text-slate-700 text-sm">
+                  {formatINR(calculatedBasePrice)}
+                </div>
+                <span className="text-[10px] text-slate-500 block mt-1">
+                  {formatINR(effectiveRate)} × {itemArea} sq.ft
+                </span>
+              </div>
             </div>
           </div>
 

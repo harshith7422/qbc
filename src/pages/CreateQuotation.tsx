@@ -74,6 +74,8 @@ export const CreateQuotation: React.FC<CreateQuotationProps> = ({
                 subCategoryName: initialItem.name,
                 pricingType: initialItem.pricingType || 'fixed',
                 ratePerSqFt: rate,
+                height: 6,
+                width: 5,
                 area: area,
                 basePrice: base,
                 finalPrice: base + 3000, // sample prefilled quoted price

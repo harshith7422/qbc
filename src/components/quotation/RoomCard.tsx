@@ -40,7 +40,7 @@ export const RoomCard: React.FC<RoomCardProps> = ({
 
   // Update individual line item area (sq.ft) and recalculate base price
   const handleItemAreaChange = (itemId: string, newArea: number) => {
-    const validArea = Math.max(1, newArea);
+    const validArea = Math.max(0.1, newArea);
     const updatedItems = room.items.map((item) => {
       if (item.id === itemId) {
         const newBase = calculateBasePrice(item.ratePerSqFt, validArea);
@@ -48,6 +48,42 @@ export const RoomCard: React.FC<RoomCardProps> = ({
         return {
           ...item,
           area: validArea,
+          basePrice: newBase,
+          finalPrice: wasUntouched ? newBase : item.finalPrice,
+        };
+      }
+      return item;
+    });
+
+    onUpdateRoom({
+      ...room,
+      items: updatedItems,
+    });
+  };
+
+  // Update item dimensions (Height × Width) and recalculate area + base price
+  const handleItemDimensionChange = (
+    itemId: string,
+    newHeight: number | undefined,
+    newWidth: number | undefined
+  ) => {
+    const updatedItems = room.items.map((item) => {
+      if (item.id === itemId) {
+        const h = newHeight !== undefined && !isNaN(newHeight) && newHeight > 0 ? newHeight : undefined;
+        const w = newWidth !== undefined && !isNaN(newWidth) && newWidth > 0 ? newWidth : undefined;
+
+        let newArea = item.area;
+        if (h !== undefined && w !== undefined) {
+          newArea = Math.round(h * w * 100) / 100;
+        }
+
+        const newBase = calculateBasePrice(item.ratePerSqFt, newArea);
+        const wasUntouched = item.finalPrice === item.basePrice;
+        return {
+          ...item,
+          height: h,
+          width: w,
+          area: newArea,
           basePrice: newBase,
           finalPrice: wasUntouched ? newBase : item.finalPrice,
         };
@@ -195,17 +231,59 @@ export const RoomCard: React.FC<RoomCardProps> = ({
                           • {item.notes}
                         </div>
                       )}
-                      <div className="text-[11px] text-slate-500 mt-1 flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[10px] text-slate-400 font-mono">{formatINR(item.ratePerSqFt)}/sq.ft ×</span>
-                        <input
-                          type="number"
-                          min="1"
-                          value={item.area}
-                          onChange={(e) => handleItemAreaChange(item.id, Number(e.target.value))}
-                          className="w-16 px-1.5 py-0.5 text-xs font-mono font-bold text-brand-950 bg-stone-50 border border-stone-200 rounded focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-900"
-                          title="Area for this subcategory (sq.ft)"
-                        />
-                        <span className="text-[10px] text-slate-400 font-medium">sq.ft</span>
+                      <div className="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[10px] text-slate-400 font-mono shrink-0">
+                          {formatINR(item.ratePerSqFt)}/sq.ft ×
+                        </span>
+                        
+                        <div className="inline-flex items-center gap-1 bg-stone-100/90 px-2 py-0.5 rounded-lg border border-stone-200">
+                          <span className="text-[10px] font-semibold text-slate-500">H:</span>
+                          <input
+                            type="number"
+                            min="0.1"
+                            step="0.5"
+                            placeholder="H"
+                            value={item.height ?? ''}
+                            onChange={(e) => {
+                              const val = e.target.value === '' ? undefined : Number(e.target.value);
+                              handleItemDimensionChange(item.id, val, item.width);
+                            }}
+                            className="w-12 px-1 py-0.5 text-xs font-mono font-bold text-brand-950 bg-white border border-stone-300 rounded text-center focus:outline-none focus:ring-1 focus:ring-brand-900"
+                            title="Height in ft"
+                          />
+                          <span className="text-[10px] text-slate-400">ft</span>
+                          
+                          <span className="text-slate-400 font-bold text-xs mx-0.5">×</span>
+                          
+                          <span className="text-[10px] font-semibold text-slate-500">W:</span>
+                          <input
+                            type="number"
+                            min="0.1"
+                            step="0.5"
+                            placeholder="W"
+                            value={item.width ?? ''}
+                            onChange={(e) => {
+                              const val = e.target.value === '' ? undefined : Number(e.target.value);
+                              handleItemDimensionChange(item.id, item.height, val);
+                            }}
+                            className="w-12 px-1 py-0.5 text-xs font-mono font-bold text-brand-950 bg-white border border-stone-300 rounded text-center focus:outline-none focus:ring-1 focus:ring-brand-900"
+                            title="Width in ft"
+                          />
+                          <span className="text-[10px] text-slate-400">ft</span>
+
+                          <span className="text-slate-400 font-bold text-xs mx-0.5">=</span>
+
+                          <input
+                            type="number"
+                            min="0.1"
+                            step="0.5"
+                            value={item.area}
+                            onChange={(e) => handleItemAreaChange(item.id, Number(e.target.value))}
+                            className="w-14 px-1 py-0.5 text-xs font-mono font-bold text-brand-950 bg-amber-50/70 border border-amber-300 rounded text-center focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-900"
+                            title="Total Area in sq.ft (H × W or enter directly)"
+                          />
+                          <span className="text-[10px] text-slate-600 font-semibold">sq.ft</span>
+                        </div>
                       </div>
                     </td>
 
